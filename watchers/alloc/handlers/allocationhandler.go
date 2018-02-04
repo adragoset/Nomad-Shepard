@@ -77,7 +77,12 @@ func NewAllocationHandler(folderPath string, eventChannel chan Event, errorChann
 func (ah AllocationHandler) HandleAllocationEvents(event filewatcher.Event) {
 	allocEvent := ah.handlesEvent(event)
 	if allocEvent != (Event{}) {
-		ah.EventChannel <- allocEvent
+		go func(e Event) {
+			select {
+			case ah.EventChannel <- e:
+			default:
+			}
+		}(allocEvent)
 	}
 }
 
