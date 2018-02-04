@@ -1,5 +1,15 @@
 package main
 
+import (
+	"NomadShepard"
+)
+
 func main() {
-	w := Shepard.New()
+
+	shepardConfig := shepard.LoadShepardConfiguration()
+
+	shep := shepard.New(shepardConfig)
+
+	shep.Start()
+
 }

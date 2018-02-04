@@ -1,0 +1,6 @@
+{
+    "alloc_watcher": {
+        "nomad_alloc_dir": "nomad_data\\alloc\\",
+        "watch_cycle_ms": 100000000
+    }
+}
