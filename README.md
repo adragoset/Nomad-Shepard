@@ -44,12 +44,12 @@ shepard/keys/${NOMAD_NODE_NAME}/${NOMAD_JOB_NAME}/${NOMAD_GROUP_NAME}/${NOMAD_TA
 This causes that allocations task to restart under nomad. Shepard then monitors the restart process until the task status is running and its health checks pass in consul. Then the task lock is aquired the node count is decremented and the task_lock and restart lock is released.
 
 #### Garbage collection
-Shepard instance will perodically poll for job and allocation keys in consul and check their status in Nomad if any keys are present for allocations or jobs that are no longer in the running state on that node they will be removed from Consul.
+Shepard instance will perodically poll for job and allocation keys in consul and check their status in Nomad. If any keys are present for allocations or jobs that are no longer in the running state on that node they will be removed from Consul.
 
 In addition to job and allocation cleanup for a node in Consuls key store Shepard will cleanup its keystore values for nodes that no longer exist or have been dead for longer than the ```node_cleanup_timeout``` key in configuration file. 
 
 #### Log shipping
-Because Shepard instances have access to the allocation folders of a task it is possible to tag log files with meta tags and pass them to a log shipper for log aggragation based on a schedual. The schedual can be set to ship logs every duration interval by setting the ```ship_log_interval``` key in the configuration file 
+Because Shepard instances have access to the allocation folders of a task it is possible to tag log files with meta tags and pass them to a log shipper for log aggragation based on a schedual. The schedual can be set to ship logs from a client every duration interval by setting the ```ship_log_interval``` key in the configuration file 
 
 
 ## Running the application
