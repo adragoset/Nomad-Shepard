@@ -28,7 +28,7 @@ Once shepard is watching a hosts allocation folders for a job or task any change
 shepard/locks/${NOMAD_NODE_NAME}/${NOMAD_JOB_NAME}/${NOMAD_GROUP_NAME}/${NOMAD_TASK_NAME}/task_lock
 ```
 The Shepard instance choosen to be leader will then create the plan other shepard clients restarting this jobs task will follow.
-The aquired lock is updated with the tasks instance_count, concurrent_lock_count, status=planned. The leader then releases the lock and joins the rest of the Shepards in attempting to aquire a restart_lock at. Other Shepard instances poll the task_lock for status while the leader reads job configuration from nomad and sets the restart plan.
+The aquired lock is updated with the tasks instance_count, concurrent_lock_count, status=planned. The leader then releases the lock and joins the rest of the Shepards in attempting to aquire a restart_lock. Other Shepard instances poll the task_lock for status while the leader reads job configuration from nomad and sets the restart plan.
 
 
 
