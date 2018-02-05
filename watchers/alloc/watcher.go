@@ -2,10 +2,10 @@ package allocwatcher
 
 import (
 	"NomadShepard/watchers/alloc/handlers"
+	"NomadShepard/watchers/file"
 	"fmt"
+	"strings"
 	"time"
-
-	filewatcher "github.com/radovskyb/watcher"
 )
 
 //Config struct
@@ -16,6 +16,7 @@ type Config struct {
 
 //Watcher struct
 type Watcher struct {
+	Handlers          map[string]*allochandlers.FileWatchHandler
 	AllocationEvents  chan allochandlers.Event
 	AllocationHandler *allochandlers.AllocationHandler
 	ErrorEvents       chan error
@@ -29,16 +30,11 @@ func New(config *Config) (*Watcher, error) {
 	fileWatcher := filewatcher.New()
 	allocEventChannel := make(chan allochandlers.Event)
 	errorEventChannel := make(chan error)
-	allocHandler, err := allochandlers.NewAllocationHandler(config.NomadAllocDir, allocEventChannel, errorEventChannel)
 
-	if err != nil {
-		err = fmt.Errorf("AllocationWatcher failed to create an AllocationHandler Error:%s", err.Error())
-		return allocWatcher, err
-	}
+	allocWatcher = &Watcher{AllocationEvents: allocEventChannel, ErrorEvents: errorEventChannel, WatchCycleMs: config.WatchCycleMs, filewatcher: fileWatcher}
 
-	allocWatcher = &Watcher{AllocationEvents: allocEventChannel, AllocationHandler: allocHandler, ErrorEvents: errorEventChannel, WatchCycleMs: config.WatchCycleMs, filewatcher: fileWatcher}
 	// Watch the alloc folder for changes.
-	err = allocWatcher.Configure(config, fileWatcher)
+	err := allocWatcher.Configure(config)
 	if err != nil {
 		var emptyWatcher *Watcher
 		err = fmt.Errorf("AllocationWatcher failed to create an AllocationHandler Error:%s", err.Error())
@@ -59,12 +55,16 @@ func (watcher Watcher) Stop() {
 }
 
 //Configure a new Watcher instance from Config
-func (watcher Watcher) Configure(config *Config, fwatcher *filewatcher.Watcher) error {
+func (watcher *Watcher) Configure(config *Config) error {
 	//set the watcher to only watch
-	fwatcher.FilterOps(filewatcher.Create, filewatcher.Remove, filewatcher.Write)
+	watcher.filewatcher.FilterOps(filewatcher.Create, filewatcher.Remove, filewatcher.Write)
 
-	if err := fwatcher.AddRecursive(config.NomadAllocDir); err != nil {
+	if err := watcher.filewatcher.Add(config.NomadAllocDir); err != nil {
 		return fmt.Errorf("Error watching Nomad alloc dir Error:%s", err.Error())
+	}
+
+	if err := watcher.buildHandlers(config.NomadAllocDir); err != nil {
+		return fmt.Errorf("Error building watch handlers Error:%s", err.Error())
 	}
 
 	//Register watch Handlers
@@ -73,12 +73,25 @@ func (watcher Watcher) Configure(config *Config, fwatcher *filewatcher.Watcher) 
 	return nil
 }
 
-func (watcher Watcher) registerWatchHandlers() {
+func (watcher *Watcher) buildHandlers(allocDir string) error {
+	allocHandler, err := allochandlers.NewAllocationHandler(allocDir, watcher.AllocationEvents, watcher.ErrorEvents)
+	if err != nil {
+		err = fmt.Errorf("AllocationWatcher failed to create an AllocationHandler Error:%s", err.Error())
+		return err
+	}
+
+	watcher.filewatcher.IgnoreRegexs(strings.Join(allocHandler.FilterExpressions, ","))
+
+	watcher.AllocationHandler = allocHandler
+	return nil
+}
+
+func (watcher *Watcher) registerWatchHandlers() {
 	go func() {
 		for {
 			select {
 			case event := <-watcher.filewatcher.Event:
-				watcher.AllocationHandler.HandleAllocationEvents(event)
+				watcher.AllocationHandler.HandleEvents(event)
 			case err := <-watcher.filewatcher.Error:
 				watcher.ErrorEvents <- fmt.Errorf("Filewatcher Error:%s", err.Error())
 			case <-watcher.filewatcher.Closed:

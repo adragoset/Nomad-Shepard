@@ -1,80 +1,43 @@
 package allochandlers
 
 import (
+	"NomadShepard/watchers/file"
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 
-	filewatcher "github.com/radovskyb/watcher"
 	"github.com/satori/go.uuid"
 )
 
-// An Op is a type that is used to describe what type
-// of event has occurred during the watching process.
-type Op uint32
-
-//PATHRGX regular expression to match allocation directories
-const PATHRGX = "^(%s){1}([A-Z0-9]{8}-([A-Z0-9]{4}-){3}[A-Z0-9]{12})$"
-
-// Ops
-const (
-	AllocCreated Op = iota
-	AllocRemoved
-	SharedAllocConfigChanged
-	TaskCreated
-	TaskConfigChanged
-)
-
-var ops = map[Op]string{
-	AllocCreated:             "ALLOCCRT",
-	AllocRemoved:             "ALLOCRMV",
-	SharedAllocConfigChanged: "SHDALLOCCFGCHG",
-	TaskCreated:              "TACRT",
-	TaskConfigChanged:        "TACFGCHG",
-}
-
-func (e Op) String() string {
-	if op, found := ops[e]; found {
-		return op
-	}
-	return "???"
-}
-
-//Event Allocation Task
-type Event struct {
-	Op
-	AllocationID uuid.UUID
-	TaskID       uuid.UUID
-}
+//ALLOCPATHPATTERN regular expression to match allocation directories
+const ALLOCPATHPATTERN = "^(%s){1}%s$"
+const ALLOCATIONPATHBLACKLISTEXP = "^(%s){1}((?!%s.+)$"
 
 //AllocationHandler manages handling events relating to allocation creation or removal
 type AllocationHandler struct {
-	FolderPath   string
-	EventChannel chan Event
-	ErrorChannel chan error
-	pathMatcher  *regexp.Regexp
+	FolderPath        string
+	EventChannel      chan Event
+	ErrorChannel      chan error
+	FilterExpressions []string
+	pathMatcher       *regexp.Regexp
 }
 
 //NewAllocationHandler creates a handler for handling allocation level events
 func NewAllocationHandler(folderPath string, eventChannel chan Event, errorChannel chan error) (*AllocationHandler, error) {
 	var allocationHandler *AllocationHandler
-	folderRegex := strings.Replace(folderPath, "\\", "\\\\", -1)
-	folderRegex = strings.Replace(folderRegex, "/", "\\\\", -1)
-	folderRegex = fmt.Sprintf(PATHRGX, folderRegex)
-	log.Println(folderRegex)
-	rg, err := regexp.Compile(folderRegex)
+
+	allocationHandler = &AllocationHandler{EventChannel: eventChannel, ErrorChannel: errorChannel, FilterExpressions: make([]string, 0)}
+	allocationHandler.setFolderPath(folderPath)
+	err := allocationHandler.buildRegularExpressions()
 	if err != nil {
 		err = fmt.Errorf("AllocationHandler failed to compile allocation folder matcher: %s", err.Error())
 	}
 
-	allocationHandler = &AllocationHandler{FolderPath: folderPath, EventChannel: eventChannel, ErrorChannel: errorChannel, pathMatcher: rg}
-
 	return allocationHandler, err
 }
 
-//HandleAllocationEvents for top level allocations
-func (ah AllocationHandler) HandleAllocationEvents(event filewatcher.Event) {
+//HandleEvents for top level allocations
+func (ah *AllocationHandler) HandleEvents(event filewatcher.Event) {
 	allocEvent := ah.handlesEvent(event)
 	if allocEvent != (Event{}) {
 		go func(e Event) {
@@ -86,11 +49,33 @@ func (ah AllocationHandler) HandleAllocationEvents(event filewatcher.Event) {
 	}
 }
 
+func (ah *AllocationHandler) setFolderPath(folderPath string) {
+	folderRegex := strings.Replace(folderPath, "\\", "\\\\", -1)
+	folderRegex = strings.Replace(folderRegex, "/", "\\\\", -1)
+
+	ah.FolderPath = folderRegex
+}
+
+func (ah *AllocationHandler) buildRegularExpressions() error {
+	folderRegex := fmt.Sprintf(ALLOCPATHPATTERN, ah.FolderPath, GUIDPATTERN)
+	rg, err := regexp.Compile(folderRegex)
+	if err != nil {
+		return fmt.Errorf("AllocationHandler failed to compile allocation folder matcher: %s", err.Error())
+	}
+	ah.pathMatcher = rg
+	ah.buildFilterExpressions()
+	return nil
+}
+
+func (ah *AllocationHandler) buildFilterExpressions() {
+	blacklistRegex := fmt.Sprintf(ALLOCATIONPATHBLACKLISTEXP, ah.FolderPath, GUIDPATTERN)
+	ah.FilterExpressions = append(ah.FilterExpressions, blacklistRegex)
+}
+
 func (ah AllocationHandler) handlesEvent(event filewatcher.Event) Event {
 	var result Event
 
 	if event.IsDir() {
-		log.Println(event.Path)
 		if ah.pathMatcher.MatchString(event.Path) {
 			result = ah.createEvent(event)
 		}
@@ -109,7 +94,7 @@ func (ah AllocationHandler) createEvent(fileEvent filewatcher.Event) Event {
 	}
 
 	switch fileEventType := fileEvent.Op; fileEventType {
-	case filewatcher.Write:
+	case filewatcher.Create:
 		e = Event{AllocationID: allocID, Op: AllocCreated}
 	case filewatcher.Remove:
 		e = Event{AllocationID: allocID, Op: AllocRemoved}
