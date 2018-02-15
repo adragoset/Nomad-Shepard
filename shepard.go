@@ -1,8 +1,9 @@
 package shepard
 
 import (
-	"NomadShepard/watchers/alloc"
 	"log"
+
+	"github.com/adragoset/shepard/watchers/alloc"
 
 	consulapi "github.com/hashicorp/consul/api"
 	nomadapi "github.com/hashicorp/nomad/api"

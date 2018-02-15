@@ -1,7 +1,7 @@
 package allochandlers
 
 import (
-	"NomadShepard/watchers/file"
+	"github.com/adragoset/shepard/watchers/file"
 )
 
 //GUIDPATTERN regular expression to match guids

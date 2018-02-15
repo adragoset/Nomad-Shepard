@@ -1,11 +1,11 @@
 package allochandlers
 
 import (
-	"NomadShepard/watchers/file"
 	"fmt"
 	"regexp"
 	"strings"
 
+	"github.com/adragoset/shepard/watchers/file"
 	"github.com/satori/go.uuid"
 )
 

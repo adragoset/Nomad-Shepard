@@ -1,7 +1,7 @@
 package main
 
 import (
-	"NomadShepard"
+	"github.com/adragoset/shepard"
 )
 
 func main() {

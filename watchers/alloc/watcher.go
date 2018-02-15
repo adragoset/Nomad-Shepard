@@ -1,11 +1,12 @@
 package allocwatcher
 
 import (
-	"NomadShepard/watchers/alloc/handlers"
-	"NomadShepard/watchers/file"
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/adragoset/shepard/watchers/alloc/handlers"
+	"github.com/adragoset/shepard/watchers/file"
 )
 
 //Config struct
