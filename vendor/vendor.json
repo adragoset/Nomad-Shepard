@@ -1,0 +1,61 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "YeDCbftCW+N7SZ0OYMyjRGE8gMY=",
+			"path": "github.com/armon/go-metrics",
+			"revision": "7aa49fde808223f8dadfdbfd3a20ff6c19e5f9ec",
+			"revisionTime": "2017-11-17T18:41:20Z"
+		},
+		{
+			"checksumSHA1": "hULedNPSLEWxXgpWG1XtJpo6fTA=",
+			"path": "github.com/hashicorp/consul/api",
+			"revision": "264b4c0e047d4e61d81a606b1b347d04dcc6defd",
+			"revisionTime": "2018-02-14T19:06:25Z"
+		},
+		{
+			"checksumSHA1": "YjdpDMKisJYSzBacXs7OakIm/Yg=",
+			"path": "github.com/hashicorp/go-cleanhttp",
+			"revision": "d5fe4b57a186c716b0e00b8c301cbd9b4182694d",
+			"revisionTime": "2017-12-18T14:54:08Z"
+		},
+		{
+			"checksumSHA1": "QPhspQeMCzyjSloKRdjN6ETCuwM=",
+			"path": "github.com/hashicorp/go-immutable-radix",
+			"revision": "7f3cd4390caab3250a57f30efdb2a65dd7649ecf",
+			"revisionTime": "2018-01-29T17:09:00Z"
+		},
+		{
+			"checksumSHA1": "x4M2uMULc5qiKQNN6CPioGNXAnk=",
+			"path": "github.com/hashicorp/go-rootcerts",
+			"revision": "6bb64b370b90e7ef1fa532be9e591a81c3493e00",
+			"revisionTime": "2016-05-03T14:34:40Z"
+		},
+		{
+			"checksumSHA1": "BBPs41SjdH2T+Kos+L4KbjmDsJk=",
+			"path": "github.com/hashicorp/golang-lru/simplelru",
+			"revision": "0fb14efe8c47ae851c0034ed7a448854d3d34cf3",
+			"revisionTime": "2018-02-01T23:52:37Z"
+		},
+		{
+			"checksumSHA1": "VekPhuqRHPZvUETrS5XFzPLQjJs=",
+			"path": "github.com/hashicorp/serf/coordinate",
+			"revision": "d4f33d5b6a0b7b252b122dc80d559e9e5280d2d4",
+			"revisionTime": "2018-02-13T01:38:05Z"
+		},
+		{
+			"checksumSHA1": "Gr3d0m9SkMFfiBgpVn/Wh12PBFI=",
+			"path": "github.com/mitchellh/go-homedir",
+			"revision": "b8bc1bf767474819792c23f32d8286a45736f1c6",
+			"revisionTime": "2016-12-03T19:45:07Z"
+		},
+		{
+			"checksumSHA1": "+RPbt/bqx8qmTbdc2bL0cjCbVNg=",
+			"path": "github.com/satori/go.uuid",
+			"revision": "36e9d2ebbde5e3f13ab2e25625fd453271d6522e",
+			"revisionTime": "2018-01-03T17:44:51Z"
+		}
+	],
+	"rootPath": "NomadShepard"
+}
